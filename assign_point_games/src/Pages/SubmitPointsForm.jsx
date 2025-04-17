@@ -7,6 +7,22 @@ const SubmitPointsForm = () => {
   const [password, setPassword] = useState('');
   const [teams, setTeams] = useState([]);
   const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(false); // for spinner
+
+  // Dynamic password mapping
+  const passwordMap = {
+    'Balance_game': 'halla1',
+    'Escape_room': 'Rahim2',
+    'Math': 'Yasser3',
+    'Maze': 'Manel4',
+    'The_Floor_is_lava': 'Rosa5',
+    'Chess': 'Aymen6',
+    'Face_Blocks': 'Yasmine7',
+    'FIFA': 'Badri8',
+    'Team_feud': 'Maissa9',
+    'Tresor': 'Doua10',
+    'Meme_It': 'Souumia11',
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,22 +42,16 @@ const SubmitPointsForm = () => {
   }, []);
 
   const isPasswordValid = () => {
-    const passwordMap = {
-      FIFA: '1',
-      Squid_game: '123',
-      MarioKart: 'abc',
-      // Add more game-password pairs if needed
-    };
-
-    if (!passwordMap[gameName]) return true; // no password required for this game
-    return password === passwordMap[gameName];
+    const expectedPassword = passwordMap[gameName];
+    if (!expectedPassword) return true; // no password required
+    return password === expectedPassword;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!isPasswordValid()) {
-      alert('Incorrect password for the selected game.');
+      alert('❌ Incorrect password for the selected game.');
       return;
     }
 
@@ -52,6 +62,8 @@ const SubmitPointsForm = () => {
     };
 
     try {
+      setLoading(true); // start spinner
+
       const response = await fetch('https://arcade-backend-ckdw.vercel.app/api/scores', {
         method: 'POST',
         headers: {
@@ -61,22 +73,23 @@ const SubmitPointsForm = () => {
       });
 
       const result = await response.json();
+      setLoading(false); // stop spinner
 
       if (!response.ok) {
         throw new Error(result.error || 'Failed to submit points');
       }
 
-      console.log('Success:', result);
-      alert('Score submitted successfully!');
+      alert('✅ Score submitted successfully!');
     } catch (error) {
-      console.error('Submission error:', error.message);
-      alert(error.message);
+      setLoading(false); // stop spinner
+      alert(`❌ ${error.message}`);
     }
   };
 
   return (
     <div className="SubmitPointsForm flex flex-col items-center justify-center min-h-screen bg-white px-4">
       <h2 className="text-3xl font-bold font-cyber text-gray-800 mb-6">Submit Game Points</h2>
+
       <form className="w-full max-w-sm space-y-4" onSubmit={handleSubmit}>
         <div>
           <label className="block text-sm text-gray-600 mb-1 font-Ocr">Team Name</label>
@@ -133,8 +146,30 @@ const SubmitPointsForm = () => {
         </div>
 
         <div className="flex justify-center items-center">
-          <button type="submit" className="btn font-Ocr text-center">
-            Submit
+          <button
+            type="submit"
+            className="btn font-Ocr text-center flex items-center gap-2"
+            disabled={loading}
+          >
+            {loading ? (
+              <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path>
+              </svg>
+            ) : (
+              'Submit'
+            )}
           </button>
         </div>
       </form>
